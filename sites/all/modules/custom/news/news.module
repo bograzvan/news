@@ -1,0 +1,76 @@
+<?php
+/**
+* Implements hook_feeds_parser_sources_alter().
+*/
+
+function news_feeds_parser_sources_alter(&$sources, $content_type) {
+	$sources['field_global_news_type'] = array(
+		'name' => t('News type'),
+		'description' => t('Category of the News'),
+		'callback' => 'my_source_get_source',
+	);
+	
+	return $sources;
+}
+
+/**
+* Implements hook_feeds_processor_targets_alter().
+*/
+function news_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
+	$targets['field_global_news_type'] = array(
+	'name' => 'News Type',
+	'description' => 'the node reference for the partner',
+	'real_target' => 'field_global_news_type', // Specify real target field on node. This is on the content type.
+	'callback' => 'news_feeds_set_target',
+	);
+}
+
+
+function my_source_get_source(FeedsSource $source, FeedsParserResult $result, $key) {
+  //$item = $batch->currentItem();
+	//print '<pre>';
+	//print_r($source);
+	//dpm($result);
+  //dpm($key);
+	//dpm($source->feed_nid);
+	foreach ($result->items as $res) {
+		//$res->items['field_global_news_type'] =  
+	}
+	
+	
+	$nid = $source->feed_nid;
+	$feed = node_load($nid);
+	if ($feed->type == 'feed_importer') { //this needs to be the name of the importer content type.
+		foreach($feed->field_global_news_type['und'] as $tax) {
+			$partner_nid[] = $tax['tid'];
+			dpm($partner_nid);
+		}
+	}
+	else {
+		$partner_nid = NULL;
+	}
+	return $partner_nid;
+	//return my_source_parse_images($item['description']);
+}
+
+/**
+* Find the node id of the feed source and use it to find the associated organization.
+*/
+/*function news_get_organization_nid(FeedsSource $source) {
+	$nid = $source->feed_nid;
+	$feed = node_load($nid);
+	if ($feed->type == 'feed_importer') { //this needs to be the name of the importer content type.
+		$partner_nid = $feed->field_global_news_type;
+	}
+	else {
+		$partner_nid = NULL;
+	}
+return $partner_nid;
+}*/
+
+/**
+* Implements hook_feeds_set_target().
+*/
+function news_feeds_set_target($source, &$entity, $target, $value) {
+	$entity->$target = $value;
+}
